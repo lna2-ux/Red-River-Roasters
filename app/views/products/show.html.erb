@@ -1,0 +1,22 @@
+<% trail = [["Catalogue", products_path]] %>
+<% trail << [@primary_category.name, category_path(@primary_category)] if @primary_category %>
+<% trail << [@product.name, nil] %>
+<%= render "shared/breadcrumbs", trail: trail %>
+
+<div class="box">
+  <span class="tag is-dark mb-2">SKU: <%= @product.sku %></span>
+  <% if @product.on_sale? %>
+    <span class="tag is-danger mb-2">On Sale</span>
+  <% end %>
+  <h1 class="title is-2"><%= @product.name %></h1>
+  <p class="title is-4 has-text-primary"><%= number_to_currency(@product.price) %></p>
+  <p class="content is-medium"><%= @product.description %></p>
+  <p class="has-text-grey">In stock: <%= @product.stock_quantity %> units</p>
+</div>
+
+<% if @recently_viewed_products.any? %>
+  <h2 class="title is-4 mt-6">Recently Viewed</h2>
+  <div class="columns is-multiline">
+    <%= render partial: "products/product", collection: @recently_viewed_products %>
+  </div>
+<% end %>

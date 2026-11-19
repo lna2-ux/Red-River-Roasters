@@ -1,0 +1,133 @@
+// 1. SCSS Variables
+$roast-dark: #2c1e16;
+$roast-espresso: #4a2c18;
+$roast-cream: #f6efe6;
+$roast-sand: #e8d8c3;
+$roast-accent: #b85d19;
+$card-bg: #ffffff;
+$text-muted: #4a4a4a;
+$base-spacing: 12px;
+
+// 2. SCSS Inheritance (%placeholder)
+%card-surface {
+  background-color: $card-bg;
+  border-radius: $base-spacing / 2; // 3. SCSS Operator
+  box-shadow: 0 4px 14px rgba(44, 30, 22, 0.14);
+  border: 1px solid rgba(44, 30, 22, 0.12);
+}
+
+html,
+body {
+  min-height: 100vh;
+  color: $roast-dark;
+  background-color: $roast-cream;
+  background-image:
+    radial-gradient(rgba(184, 93, 25, 0.1) 1.5px, transparent 1.5px),
+    linear-gradient(160deg, $roast-cream 0%, $roast-sand 100%);
+  background-size: ($base-spacing * 2) ($base-spacing * 2), 100% 100%; // SCSS Operator
+}
+
+// Global fix so .title and .subtitle never overlap anywhere on the site
+.title {
+  display: block;
+  line-height: 1.3 !important;
+  margin-bottom: 0.9rem !important;
+}
+
+.subtitle {
+  display: block;
+  line-height: 1.55 !important;
+  margin-top: 0.25rem !important;
+}
+
+.store-hero {
+  background: linear-gradient(135deg, $roast-dark 0%, $roast-espresso 60%, $roast-accent 100%);
+  color: #ffffff;
+  border-radius: $base-spacing;
+  padding: ($base-spacing * 2.5) ($base-spacing * 2);
+  margin-bottom: $base-spacing * 2;
+  box-shadow: 0 8px 20px rgba(44, 30, 22, 0.22);
+
+  .store-hero-heading {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .store-hero-copy {
+    display: block;
+  }
+
+  .title {
+    color: #ffffff;
+    font-size: 2.25rem;
+    line-height: 1.25 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .subtitle {
+    color: #f8f5f0;
+    font-size: 1.2rem;
+    line-height: 1.5 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.search-panel {
+  @extend %card-surface;
+  color: $roast-dark;
+}
+
+// 4. SCSS Nesting
+.product-card {
+  @extend %card-surface;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: $base-spacing * 0.5;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(44, 30, 22, 0.2);
+  }
+
+  .card-content {
+    flex: 1 1 auto;
+  }
+
+  .product-card-title {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 0.45rem;
+
+    a {
+      color: $roast-dark;
+      text-decoration: none;
+
+      &:hover {
+        color: $roast-accent;
+      }
+    }
+  }
+
+  .product-card-price {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: $roast-accent;
+    margin-bottom: 0.65rem;
+  }
+
+  .product-card-desc {
+    display: block;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: $text-muted;
+    margin-bottom: 0;
+  }
+}

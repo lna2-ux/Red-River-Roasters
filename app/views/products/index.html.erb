@@ -1,0 +1,57 @@
+<%= render "shared/breadcrumbs", trail: [["Catalogue", nil]] %>
+
+<div class="store-hero">
+  <div class="store-hero-heading">
+    <h1 class="title is-2">Red River Roasters</h1>
+  </div>
+  <div class="store-hero-copy">
+    <p class="subtitle is-5">Small-batch specialty coffee roasted weekly in Winnipeg’s Exchange District.</p>
+  </div>
+</div>
+
+<div class="box search-panel">
+  <%= form_with url: products_path, method: :get, local: true do |f| %>
+    <div class="columns is-vcentered">
+      <div class="column is-5">
+        <%= f.text_field :q,
+            value: params[:q],
+            placeholder: "Search by keyword (name or description)...",
+            class: "input" %>
+      </div>
+      <div class="column is-4">
+        <div class="select is-fullwidth">
+          <%= f.select :category_id,
+              options_from_collection_for_select(@nav_categories, :id, :name, params[:category_id]),
+              include_blank: "All Categories" %>
+        </div>
+      </div>
+      <div class="column is-3">
+        <%= f.submit "Search", class: "button is-primary is-fullwidth" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="buttons mt-3">
+    <%= link_to "All", products_path, class: "button is-small #{params[:filter].blank? ? 'is-dark' : ''}" %>
+    <%= link_to "On Sale", products_path(filter: "on_sale"), class: "button is-small #{params[:filter] == 'on_sale' ? 'is-danger' : ''}" %>
+    <%= link_to "New Arrivals", products_path(filter: "new"), class: "button is-small #{params[:filter] == 'new' ? 'is-success' : ''}" %>
+    <%= link_to "Recently Updated", products_path(filter: "recently_updated"), class: "button is-small #{params[:filter] == 'recently_updated' ? 'is-info' : ''}" %>
+  </div>
+</div>
+
+<% if params[:q].present? || @selected_category.present? %>
+  <p class="subtitle is-6 mb-4">
+    Search results
+    <% if params[:q].present? %>for "<strong><%= params[:q] %></strong>"<% end %>
+    <% if @selected_category.present? %>in <strong><%= @selected_category.name %></strong><% else %>across <strong>All Categories</strong><% end %>
+    (<%= @products.total_count %> found)
+  </p>
+<% end %>
+
+<div class="columns is-multiline">
+  <%= render partial: "products/product", collection: @products %>
+</div>
+
+<div class="mt-5">
+  <%= paginate @products %>
+</div>

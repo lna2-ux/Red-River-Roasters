@@ -1,0 +1,12 @@
+<%= render "shared/breadcrumbs", trail: [["Catalogue", products_path], [@category.name, nil]] %>
+
+<h1 class="title is-2"><%= @category.name %></h1>
+<p class="subtitle is-5"><%= @category.description %></p>
+
+<div class="columns is-multiline">
+  <%= render partial: "products/product", collection: @products %>
+</div>
+
+<div class="mt-5">
+  <%= paginate @products %>
+</div>

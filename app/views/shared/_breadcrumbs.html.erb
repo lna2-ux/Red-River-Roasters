@@ -1,0 +1,12 @@
+<nav class="breadcrumb" aria-label="breadcrumbs">
+  <ul>
+    <li><%= link_to "Home", root_path %></li>
+    <% trail.each_with_index do |(label, path), idx| %>
+      <% if idx == trail.size - 1 || path.nil? %>
+        <li class="is-active"><a href="#" aria-current="page"><%= label %></a></li>
+      <% else %>
+        <li><%= link_to label, path %></li>
+      <% end %>
+    <% end %>
+  </ul>
+</nav>

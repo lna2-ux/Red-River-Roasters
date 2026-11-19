@@ -1,0 +1,26 @@
+<div class="column is-one-quarter-desktop is-half-tablet">
+  <div class="card product-card">
+    <div class="card-content">
+      <% if product.on_sale? %>
+        <span class="tag is-danger mb-2">On Sale</span>
+      <% end %>
+      <h2 class="product-card-title">
+        <%= link_to product.name, product_path(product) %>
+      </h2>
+      <p class="product-card-price">
+        <%= number_to_currency(product.price) %>
+      </p>
+      <p class="product-card-desc">
+        <%= truncate(product.description, length: 95) %>
+      </p>
+      <div class="tags mt-3">
+        <% product.categories.each do |cat| %>
+          <%= link_to cat.name, category_path(cat), class: "tag is-light" %>
+        <% end %>
+      </div>
+    </div>
+    <footer class="card-footer">
+      <%= link_to "View Details", product_path(product), class: "card-footer-item" %>
+    </footer>
+  </div>
+</div>
