@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Red River Roasters | Winnipeg Specialty Coffee</title>
+    <title><%= content_for?(:title) ? yield(:title) : "Red River Roasters | Winnipeg Specialty Coffee" %></title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
@@ -85,6 +85,7 @@
     <main class="section">
       <div class="container">
         <%= render "shared/flash" %>
+        <%= render "shared/breadcrumbs" if lookup_context.exists?("shared/breadcrumbs") %>
         <%= yield %>
       </div>
     </main>

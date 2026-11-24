@@ -1,22 +1,68 @@
+<% content_for :title, "#{@product.name} | Red River Roasters" %>
+
+<% primary_cat = defined?(@primary_category) && @primary_category.present? ? @primary_category : @product.categories.first %>
 <% trail = [["Catalogue", products_path]] %>
-<% trail << [@primary_category.name, category_path(@primary_category)] if @primary_category %>
+<% trail << [primary_cat.name, category_path(primary_cat)] if primary_cat.present? %>
 <% trail << [@product.name, nil] %>
 <%= render "shared/breadcrumbs", trail: trail %>
 
-<div class="box">
-  <span class="tag is-dark mb-2">SKU: <%= @product.sku %></span>
-  <% if @product.on_sale? %>
-    <span class="tag is-danger mb-2">On Sale</span>
-  <% end %>
-  <h1 class="title is-2"><%= @product.name %></h1>
-  <p class="title is-4 has-text-primary"><%= number_to_currency(@product.price) %></p>
-  <p class="content is-medium"><%= @product.description %></p>
-  <p class="has-text-grey">In stock: <%= @product.stock_quantity %> units</p>
-</div>
+<article class="box product-detail">
+  <div class="product-detail__info">
+    <div class="tags mb-2">
+      <span class="tag is-dark">SKU: <%= @product.sku %></span>
+      <% if @product.on_sale? %>
+        <span class="tag is-danger">On Sale</span>
+      <% end %>
+      <% if @product.stock_quantity.to_i > 0 %>
+        <span class="tag is-success is-light">In stock: <%= @product.stock_quantity %> units</span>
+      <% else %>
+        <span class="tag is-warning is-light">Out of stock</span>
+      <% end %>
+    </div>
 
-<% if @recently_viewed_products.any? %>
-  <h2 class="title is-4 mt-6">Recently Viewed</h2>
-  <div class="columns is-multiline">
-    <%= render partial: "products/product", collection: @recently_viewed_products %>
+    <h1 class="title is-2"><%= @product.name %></h1>
+    <p class="title is-4 has-text-primary"><%= number_to_currency(@product.price) %></p>
+
+    <div class="content is-medium product-description">
+      <%= simple_format(@product.description.to_s) %>
+    </div>
+
+    <% if @product.categories.any? %>
+      <div class="field is-grouped is-grouped-multiline mb-4 product-categories">
+        <div class="control">
+          <span class="has-text-weight-semibold">Categories:</span>
+        </div>
+        <% @product.categories.each do |cat| %>
+          <div class="control">
+            <%= link_to cat.name, category_path(cat), class: "tag is-link is-light category-chip" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @product.stock_quantity.to_i > 0 %>
+      <%= form_with url: add_cart_item_path, method: :post, local: true, html: { class: "add-to-cart-form mt-4" } do %>
+        <%= hidden_field_tag :product_id, @product.id %>
+
+        <div class="field is-grouped is-align-items-end">
+          <div class="control">
+            <%= label_tag :quantity, "Quantity", class: "label" %>
+            <%= number_field_tag :quantity, 1, min: 1, max: [@product.stock_quantity.to_i, 99].max, id: "quantity", class: "input qty-input" %>
+          </div>
+          <div class="control">
+            <%= submit_tag "Add to Cart", class: "button is-warning btn--primary" %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
   </div>
+</article>
+
+<% if defined?(@recently_viewed_products) && @recently_viewed_products.present? %>
+  <section class="recently-viewed-section mt-6" aria-label="Recently Viewed Products">
+    <h2 class="title is-4">Recently Viewed</h2>
+    <div class="columns is-multiline">
+      <%= render partial: "products/product", collection: @recently_viewed_products %>
+    </div>
+  </section>
 <% end %>

@@ -1,0 +1,65 @@
+<% content_for :title, "Shopping Cart | Red River Roasters" %>
+
+<h1 class="title is-2">Your Shopping Cart</h1>
+
+<% if @cart_items.present? && @cart_items.any? %>
+  <div class="box">
+    <table class="table is-fullwidth is-striped is-hoverable">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Unit Price</th>
+          <th>Quantity</th>
+          <th>Line Total</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @cart_items.each do |row| %>
+          <tr>
+            <td>
+              <strong><%= link_to row[:product].name, product_path(row[:product]) %></strong>
+            </td>
+            <td><%= number_to_currency(row[:product].price) %></td>
+            <td>
+              <%= form_with url: update_cart_item_path, method: :patch, local: true, html: { class: "field is-grouped" } do |f| %>
+                <%= hidden_field_tag :product_id, row[:product].id %>
+                <div class="control">
+                  <%= number_field_tag :quantity, row[:quantity], min: 0, step: 1, class: "input is-small", style: "width: 80px;" %>
+                </div>
+                <div class="control">
+                  <%= f.submit "Update", class: "button is-small is-info" %>
+                </div>
+              <% end %>
+            </td>
+            <td><strong><%= number_to_currency(row[:line_total]) %></strong></td>
+            <td>
+              <%= button_to "Remove", remove_cart_item_path(product_id: row[:product].id), method: :delete, class: "button is-small is-danger is-light" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <div class="level">
+      <div class="level-left">
+        <div class="buttons">
+          <%= link_to "Continue Shopping", products_path, class: "button is-light" %>
+          <% if Rails.application.routes.url_helpers.respond_to?(:new_order_path) %>
+            <%= link_to "Proceed to Checkout", new_order_path, class: "button is-warning" %>
+          <% end %>
+        </div>
+      </div>
+      <div class="level-right">
+        <p class="title is-4">Subtotal: <%= number_to_currency(@subtotal) %></p>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="box has-text-centered">
+    <p class="subtitle is-5 mb-4">Your shopping cart is currently empty.</p>
+    <%= link_to "Browse Products", products_path, class: "button is-warning" %>
+  </div>
+<% end %>

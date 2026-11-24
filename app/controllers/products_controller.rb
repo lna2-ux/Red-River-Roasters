@@ -39,7 +39,10 @@ class ProductsController < ApplicationController
     @product = Product.active.find(params[:id])
     @primary_category = @product.categories.first
 
-    session[:recently_viewed] = ([ @product.id ] + Array(session[:recently_viewed])).uniq.first(5)
-    @recently_viewed_products = Product.active.where(id: session[:recently_viewed] - [ @product.id ])
+    session[:recently_viewed] = ([ @product.id ] + Array(session[:recently_viewed]).map(&:to_i)).uniq.first(5)
+
+    recent_ids = (Array(session[:recently_viewed]).map(&:to_i) - [ @product.id ]).first(4)
+    products_by_id = Product.active.includes(:categories).where(id: recent_ids).index_by(&:id)
+    @recently_viewed_products = recent_ids.filter_map { |id| products_by_id[id] }
   end
 end
