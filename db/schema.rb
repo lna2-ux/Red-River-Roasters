@@ -10,7 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_24_014334) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_24_221341) do
+  create_table "accounts", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "username"
+    t.string "street_address"
+    t.string "city"
+    t.string "postal_code"
+    t.integer "province_id", null: false
+    t.index ["email"], name: "index_accounts_on_email", unique: true
+    t.index ["province_id"], name: "index_accounts_on_province_id"
+    t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
+  end
+
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -54,9 +72,51 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_24_014334) do
     t.index ["product_id"], name: "index_categorizations_on_product_id"
   end
 
-  create_table "customers_orders_and_order_items", force: :cascade do |t|
+  create_table "customers", force: :cascade do |t|
+    t.string "full_name", null: false
+    t.string "email", null: false
+    t.string "street_address"
+    t.string "city"
+    t.string "postal_code"
+    t.integer "province_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_customers_on_email"
+    t.index ["province_id"], name: "index_customers_on_province_id"
+  end
+
+  create_table "order_items", force: :cascade do |t|
+    t.integer "order_id", null: false
+    t.integer "product_id", null: false
+    t.string "product_name", null: false
+    t.decimal "unit_price", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "quantity", default: 1, null: false
+    t.decimal "line_total", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_id"], name: "index_order_items_on_product_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.integer "customer_id", null: false
+    t.integer "province_id"
+    t.decimal "subtotal", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "gst_rate", precision: 6, scale: 4, default: "0.0", null: false
+    t.decimal "pst_rate", precision: 6, scale: 4, default: "0.0", null: false
+    t.decimal "hst_rate", precision: 6, scale: 4, default: "0.0", null: false
+    t.decimal "gst_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "pst_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "hst_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "tax_total", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "status", default: "placed", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "stripe_payment_id"
+    t.datetime "paid_at"
+    t.index ["customer_id"], name: "index_orders_on_customer_id"
+    t.index ["province_id"], name: "index_orders_on_province_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -93,6 +153,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_24_014334) do
     t.index ["slug"], name: "index_site_pages_on_slug", unique: true
   end
 
+  add_foreign_key "accounts", "provinces"
   add_foreign_key "categorizations", "categories"
   add_foreign_key "categorizations", "products"
+  add_foreign_key "customers", "provinces"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_items", "products"
+  add_foreign_key "orders", "customers"
+  add_foreign_key "orders", "provinces"
 end

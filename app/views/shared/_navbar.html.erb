@@ -20,6 +20,18 @@
         <div class="navbar-item">
           <div class="buttons">
             <%= link_to "Cart (#{cart_count})", cart_path, class: "button is-warning is-small" %>
+
+            <% if account_signed_in? %>
+              <span class="navbar-item has-text-light is-size-7">
+                Hi, <%= current_account.username.presence || current_account.email %>
+              </span>
+              <%= link_to "Account", edit_account_registration_path, class: "button is-info is-small is-outlined" %>
+              <%= button_to "Log Out", destroy_account_session_path, method: :delete, class: "button is-danger is-small is-outlined", form: { class: "is-inline" } %>
+            <% else %>
+              <%= link_to "Sign Up", new_account_registration_path, class: "button is-primary is-small" %>
+              <%= link_to "Log In", new_account_session_path, class: "button is-info is-small is-light" %>
+            <% end %>
+
             <%= link_to "Admin Dashboard", admin_root_path, class: "button is-light is-small" %>
           </div>
         </div>

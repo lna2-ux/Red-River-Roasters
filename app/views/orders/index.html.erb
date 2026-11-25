@@ -1,0 +1,108 @@
+<div class="container py-5">
+  <div class="level mb-4">
+    <div class="level-left">
+      <h1 class="title is-2 mb-0">Past Orders</h1>
+    </div>
+    <div class="level-right">
+      <%= link_to "Continue Shopping", products_path, class: "button is-primary" %>
+    </div>
+  </div>
+
+  <% if @orders.present? %>
+    <% @orders.each do |order| %>
+      <div class="box mb-5">
+        <div class="level is-mobile mb-3">
+          <div class="level-left">
+            <div>
+              <h2 class="title is-4 mb-1">
+                Order #<%= order.id %>
+                <%= link_to "View Invoice", order_path(order), class: "button is-small is-light ml-2" %>
+              </h2>
+              <p class="is-size-7 has-text-grey">
+                Placed on <%= order.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                <% if order.status.present? %>
+                  &middot; Status: <strong><%= order.status.humanize %></strong>
+                <% end %>
+                <% if order.respond_to?(:stripe_payment_id) && order.stripe_payment_id.present? %>
+                  &middot; Payment ID: <code><%= order.stripe_payment_id %></code>
+                <% end %>
+                <% if order.respond_to?(:paid_at) && order.paid_at.present? %>
+                  &middot; Paid: <strong><%= order.paid_at.strftime("%b %d, %Y %I:%M %p") %></strong>
+                <% end %>
+                <% if order.customer.present? %>
+                  &middot; Customer: <strong><%= order.customer.full_name %></strong>
+                <% end %>
+              </p>
+            </div>
+          </div>
+          <div class="level-right has-text-right">
+            <div>
+              <p class="is-size-7 has-text-grey">Grand Total</p>
+              <p class="title is-4 has-text-primary">
+                <%= number_to_currency(order.total_amount) %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th class="has-text-right">Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.order_items.each do |item| %>
+              <% item_name  = item.product_name.presence || item.product&.name || "Product" %>
+              <% unit_price = item.unit_price.presence || item.product&.price || 0 %>
+              <% line_total = item.line_total.presence || (unit_price.to_d * item.quantity.to_i) %>
+              <tr>
+                <td><%= item_name %></td>
+                <td><%= number_to_currency(unit_price) %></td>
+                <td><%= item.quantity %></td>
+                <td class="has-text-right"><%= number_to_currency(line_total) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <div class="columns is-mobile is-multiline mt-2">
+          <div class="column is-half-mobile">
+            <% if order.customer.present? %>
+              <p class="is-size-7 has-text-grey">
+                <strong>Shipping Address:</strong>
+                <%= order.customer.street_address %>,
+                <%= order.customer.city %>,
+                <%= order.province&.name %>
+                <%= order.customer.postal_code %>
+              </p>
+            <% end %>
+          </div>
+          <div class="column is-half-mobile has-text-right">
+            <p class="is-size-7">Subtotal: <strong><%= number_to_currency(order.subtotal) %></strong></p>
+            <% if order.respond_to?(:gst_amount) && order.gst_amount.to_d > 0 %>
+              <p class="is-size-7">GST: <strong><%= number_to_currency(order.gst_amount) %></strong></p>
+            <% end %>
+            <% if order.respond_to?(:pst_amount) && order.pst_amount.to_d > 0 %>
+              <p class="is-size-7">PST: <strong><%= number_to_currency(order.pst_amount) %></strong></p>
+            <% end %>
+            <% if order.respond_to?(:hst_amount) && order.hst_amount.to_d > 0 %>
+              <p class="is-size-7">HST: <strong><%= number_to_currency(order.hst_amount) %></strong></p>
+            <% end %>
+            <p class="is-size-6 mt-1">
+              <strong>Grand Total: <%= number_to_currency(order.total_amount) %></strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="notification is-light">
+      <p>No orders found yet.</p>
+    </div>
+    <%= link_to "Browse Products", products_path, class: "button is-primary" %>
+  <% end %>
+</div>

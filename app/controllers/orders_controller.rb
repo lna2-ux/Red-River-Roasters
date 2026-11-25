@@ -2,7 +2,8 @@ class OrdersController < ApplicationController
   before_action :load_provinces, only: %i[new create]
 
   def index
-    @orders = Order.includes(:customer, :province).order(created_at: :desc)
+    @orders = Order.includes(:customer, :province, order_items: :product)
+                   .order(created_at: :desc)
   end
 
   def new
@@ -15,7 +16,7 @@ class OrdersController < ApplicationController
     @order = Order.new
     @customer = Customer.new
     @subtotal = @cart_items.sum { |item| item[:line_total] }
-   @default_province = @provinces.find { |p| p.abbreviation.to_s.upcase == "MB" } || @provinces.first
+    @default_province = @provinces.find { |p| p.abbreviation.to_s.upcase == "MB" } || @provinces.first
     @tax_breakdown = calculate_tax(@subtotal, @default_province)
     @total = (@subtotal + @tax_breakdown[:total_tax]).round(2)
   end
@@ -60,7 +61,7 @@ class OrdersController < ApplicationController
         hst_amount: @tax_breakdown[:hst_amount],
         tax_total: @tax_breakdown[:total_tax],
         total_amount: @total,
-        status: "placed"
+        status: "pending_payment"
       )
       @order.save!
 
@@ -77,10 +78,44 @@ class OrdersController < ApplicationController
     end
 
     session[:cart] = {}
-    redirect_to order_path(@order), notice: "Order ##{@order.id} placed successfully!"
+
+    stripe_session = create_stripe_checkout_session(@order)
+    redirect_to stripe_session.url, allow_other_host: true
+  rescue Stripe::StripeError => e
+    redirect_to order_path(@order), alert: "Stripe payment error: #{e.message}"
   rescue ActiveRecord::RecordInvalid => e
     flash.now[:alert] = "Please check your checkout details: #{e.record.errors.full_messages.to_sentence}"
     render :new, status: :unprocessable_entity
+  end
+
+  def payment_success
+    @order = Order.find(params[:id])
+    session_id = params[:session_id].to_s
+
+    if session_id.present?
+      checkout_session = Stripe::Checkout::Session.retrieve(session_id)
+
+      if checkout_session.payment_status == "paid"
+        payment_ref = checkout_session.payment_intent.presence || checkout_session.id
+        @order.update!(
+          status: "paid",
+          stripe_payment_id: payment_ref,
+          paid_at: Time.current
+        )
+        redirect_to order_path(@order), notice: "Payment confirmed! Order ##{@order.id} is now paid."
+        return
+      end
+    end
+
+    redirect_to order_path(@order), alert: "Payment could not be verified yet."
+  rescue Stripe::StripeError => e
+    redirect_to order_path(@order), alert: "Unable to verify Stripe payment: #{e.message}"
+  end
+
+  def payment_cancel
+    @order = Order.find(params[:id])
+    @order.update!(status: "cancelled") if @order.status == "pending_payment"
+    redirect_to order_path(@order), alert: "Stripe checkout was cancelled for Order ##{@order.id}."
   end
 
   def show
@@ -88,6 +123,34 @@ class OrdersController < ApplicationController
   end
 
   private
+
+  def create_stripe_checkout_session(order)
+    amount_cents = (order.total_amount.to_d * 100).round
+
+    Stripe::Checkout::Session.create(
+      mode: "payment",
+      allowed_payment_method_types: ["card"],
+      customer_email: order.customer&.email,
+      client_reference_id: order.id.to_s,
+      line_items: [
+        {
+          price_data: {
+            currency: "cad",
+            unit_amount: amount_cents,
+            product_data: {
+              name: "Red River Roasters — Order ##{order.id}"
+            }
+          },
+          quantity: 1
+        }
+      ],
+      metadata: {
+        order_id: order.id
+      },
+      success_url: "#{payment_success_order_url(order)}?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: payment_cancel_order_url(order)
+    )
+  end
 
   def load_provinces
     @provinces = Province.order(:name)
